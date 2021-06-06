@@ -23,8 +23,14 @@ def _table(result):
         rendered = _sparql_result_to_table(result)
     elif isinstance(result, dict):
         rendered = _json_dict_to_table(result)
-    elif isinstance(result, list) and len(result) > 0 and isinstance(result[0], dict):
-        rendered = _list_of_json_dict_to_table(result)
+    elif isinstance(result, list):
+        if len(result) > 0:
+            if isinstance(result[0], dict):
+                rendered = _list_of_json_dict_to_table(result)
+            elif isinstance(result[0], str):
+                rendered = ",".join(result)
+        else:
+            rendered = ""
     else:
         rendered = str(result)
     return rendered
