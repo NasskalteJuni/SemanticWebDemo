@@ -1,7 +1,7 @@
 import sys
 import requests
 from SPARQLWrapper import SPARQLWrapper, JSON
-from IPython.display import display, Markdown
+from IPython.display import display, HTML
 
 endpoint_url = "https://query.wikidata.org/sparql"
 
@@ -15,22 +15,82 @@ def query(q):
 
 
 def table(result):
+    return display(HTML(_table(result)))
+
+
+def _table(result):
+    if 'head' in result and 'vars' in result['head']:
+        rendered = _sparql_result_to_table(result)
+    elif isinstance(result, dict):
+        rendered = _json_dict_to_table(result)
+    elif isinstance(result, list) and len(result) > 0 and isinstance(result[0], dict):
+        rendered = _list_of_json_dict_to_table(result)
+    else:
+        rendered = str(result)
+    return rendered
+
+
+def _list_of_json_dict_to_table(json_list):
+    columns = set()
+    for result in json_list:
+        for key in result:
+            columns.add(key)
+
+    thead = "<thead><tr>"
+    for column in columns:
+        thead += "<th>" + column + "</th>"
+    thead += "</tr></thead>"
+
+    tbody = "<tbody>"
+    for result in json_list:
+        tbody += "<tr>"
+        for column in columns:
+            value = result[column] if column in result else ""
+            value = value if value is not None else ""
+            if isinstance(value, list) or isinstance(value, dict):
+                value = _table(value)
+            else:
+                value = value if value is not None else ""
+            tbody += "<td>" + str(value) + "</td>"
+        tbody += "</tr>"
+    tbody += "</tbody>"
+
+    return "<table>"+thead+tbody+"</tbody>"
+
+
+def _json_dict_to_table(json):
+    thead = "<thead><tr><th> Key </th><th> Value </th></tr></thead>"
+
+    tbody = "<tbody>"
+    for key, value in json.items():
+        if isinstance(value, list) or isinstance(value, dict):
+            value = _table(value)
+        else:
+            value = value if value is not None else ""
+        tbody += "<tr><td>" + str(key) + "</td><td>" + str(value) + "</td></tr>"
+    tbody += "</tbody>"
+
+    return "<table>" + thead + tbody + "</table>"
+
+
+def _sparql_result_to_table(result):
     vars = result['head']['vars']
-    thead = "| "
+
+    thead = "<thead><tr>"
     for th in vars:
-        thead += th+" |"
-    thead += "\n|"
-    for th in vars:
-        thead += " --- |"
-    thead += "\n"
-    tbody = ""
+        thead += "<th>" + th + "</th>"
+    thead += "</tr></thead>"
+
+    tbody = "<tbody>"
     for tr in result['results']['bindings']:
-        tbody += "| "
+        tbody += "<tr>"
         for td in vars:
-            tbody += tr[td]['value'] + " |"
-        tbody += "\n"
-    display(Markdown(thead+tbody))
-    return "showing "+str(len(result['results']['bindings']))+" results"
+            value = tr[td]['value'] if tr[td]['value'] is not None else ""
+            tbody += "<td>" + str(value) + "</td>"
+        tbody += "</tr>"
+    tbody += "</tbody>"
+
+    return "<table>"+thead+tbody+"</table>"
 
 
 def entity_to_json(entity_tag):

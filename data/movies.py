@@ -33,6 +33,7 @@ def get_all(limit=-1):
         _map_object_id_to_id(movie)
     return movies
 
+
 def get_by_title(movie_title):
     return _map_object_id_to_id(collection.find_one({'title': movie_title}))
 
@@ -43,6 +44,7 @@ def get_by_id(movie_id):
 
 def get_by_uuid(movie_uuid):
     return _map_object_id_to_id(collection.find_one({'_id': ObjectId(movie_uuid)}))
+
 
 def add_data_by_title(movie_id, data):
     return collection.update_one({"title": movie_id}, {"$set": data})
