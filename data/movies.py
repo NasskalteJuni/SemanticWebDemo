@@ -25,13 +25,14 @@ def _map_object_id_to_id(obj):
 
 
 def get_all(limit=-1):
-    selection = {}
     if limit >= 0:
-        selection['limit'] = limit
-    movies = list(collection.find(selection))
+        movies = list(collection.find().limit(limit))
+    else:
+        movies = list(collection.find())
     for movie in movies:
         _map_object_id_to_id(movie)
     return movies
+
 
 def get_by_title(movie_title):
     return _map_object_id_to_id(collection.find_one({'title': movie_title}))
@@ -46,3 +47,4 @@ def get_by_uuid(movie_uuid):
 
 def add_data_by_title(movie_id, data):
     return collection.update_one({"title": movie_id}, {"$set": data})
+
