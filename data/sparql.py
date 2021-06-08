@@ -29,6 +29,8 @@ def _table(result):
                 rendered = _list_of_json_dict_to_table(result)
             elif isinstance(result[0], str):
                 rendered = ",".join(result)
+            else:
+                rendered = str(result)
         else:
             rendered = ""
     else:
@@ -91,8 +93,11 @@ def _sparql_result_to_table(result):
     for tr in result['results']['bindings']:
         tbody += "<tr>"
         for td in vars:
-            value = tr[td]['value'] if tr[td]['value'] is not None else ""
-            tbody += "<td>" + str(value) + "</td>"
+            if td in tr and 'value' in tr[td]:
+                value = tr[td]['value'] if tr[td]['value'] is not None else ""
+                tbody += "<td>" + str(value) + "</td>"
+            else:
+                tbody += "<td> </td>"
         tbody += "</tr>"
     tbody += "</tbody>"
 
